@@ -2,25 +2,43 @@ $(function(){
 
 	var Board = function(){
 
+		this.squares = [];
+		this.pieces = [];
+
+		for(var x = 0; x < 8; x++){
+			this.squares[x] = [];
+			this.pieces[x] = [];
+			for(var y = 0; y < 8; y++){
+				this.pieces[x][y] = null;
+				this.squares[x][y] = null;
+			}
+		}
+
 		for(var y = 7; y >= 0; y--){
 			for(var x = 0; x < 8; x++){
 				var square = new Square(x, y);
+				this.squares[square.x][square.y] = square;
 				$(".board").append(square.getElement());
 			}
 		}
 
 		this.add = function(piece){
-			this.getSquare(piece.x, piece.y).append(piece.getElement());
+			this.pieces[piece.x][piece.y] = piece;
+			this.getSquare(piece.x, piece.y).getElement().append(piece.getElement());
 		};
 
 		this.getSquare = function(x, y){
-			return $(".square[data-x=" + x + "][data-y=" + y + "]");
+			return this.squares[x][y];
 		};
+
 	};
 
 	var Square = function(x, y){
-		var square = $("<div />").addClass("square").attr("data-x", x).attr("data-y", y);
-		var coord = $("<span />").addClass("coords").html(x + "," + y);
+		this.x = x;
+		this.y = y;
+
+		var square = $("<div />").addClass("square").attr("data-x", this.x).attr("data-y", this.y);
+		var coord = $("<span />").addClass("coords").html(this.x + "," + this.y);
 		square.html(coord);
 
 		square.on("click", function(){
