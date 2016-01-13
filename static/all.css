@@ -72,8 +72,8 @@ html, body {
 	background-color: #6f85b7;
 }
 
-.square.possible {
-	background: white;
+.square.highlight {
+	background-color: #00ff00 !important;
 }
 
 .turn {
