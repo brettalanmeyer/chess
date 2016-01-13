@@ -1,0 +1,168 @@
+* {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	box-sizing: border-box;
+}
+
+html, body {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	height: 100%;
+	font-family: Arial;
+}
+
+.container {
+	width: 100%;
+	height: 100%;
+}
+
+.container.outer {
+	display: table;
+}
+
+.container.inner {
+	text-align: center;
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.board {
+	border: solid 1px #000;
+	display: inline-block;
+	position: relative;
+}
+
+.board.black {
+	transform: rotate(0deg);
+}
+.board.red {
+	transform: rotate(180deg);
+}
+
+.square {
+	width: 11vh;
+	height: 11vh;
+	border: solid 1px #000;
+	float: left;
+	background-color: #fff;
+	background-size: 120% 120%;
+	background-position: center center;
+	font-family: arial;
+	font-size: 11px;
+	position: relative;
+}
+
+.square:nth-child(8n + 1){
+	clear: both;
+}
+
+.square[data-y="7"]:nth-child(even),
+.square[data-y="6"]:nth-child(odd),
+.square[data-y="5"]:nth-child(even),
+.square[data-y="4"]:nth-child(odd),
+.square[data-y="3"]:nth-child(even),
+.square[data-y="2"]:nth-child(odd),
+.square[data-y="1"]:nth-child(even),
+.square[data-y="0"]:nth-child(odd){
+	background-color: #6f85b7;
+}
+
+.square.possible {
+	background: white;
+}
+
+.turn {
+	position: absolute;
+	margin: 20px;
+	font-size: 24px;
+}
+
+.turn .label {
+	display: inline;
+}
+
+.turn .value {
+	display: inline-block;
+}
+
+.turn .value::first-letter {
+	text-transform: capitalize;
+}
+
+.coords {
+	position: absolute;
+	left: 0;
+}
+
+.coords-toggle {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	cursor: pointer;
+}
+
+.piece {
+	width: 100%;
+	height: 100%;
+	font-size: 11vh;
+	line-height: 11vh;
+}
+
+.white.pawn::after {
+	/* &#9817; */
+	content: '♙';
+}
+.black.pawn::after {
+	/* &#9823; */
+	content: '♟';
+}
+
+.white.rook::after {
+	/* &#9814; */
+	content: '♖';
+}
+.black.rook::after {
+	/* &#9820; */
+	content: '♜';
+}
+
+.white.knight::after {
+	/* &#9816; */
+	content: '♘';
+}
+.black.knight::after {
+	/* &#9822; */
+	content: '♞';
+}
+
+.white.bishop::after {
+	/* &#9815; */
+	content: '♗';
+}
+.black.bishop::after {
+	/* &#9821; */
+	content: '♝';
+}
+
+.white.queen::after {
+	/* &#9813; */
+	content: '♔';
+}
+.black.queen::after {
+	/* &#9819; */
+	content: '♚';
+}
+
+.white.king::after {
+	/* &#9812; */
+	content: '♕';
+}
+.black.king::after {
+	/* &#9818; */
+	content: '♛';
+}
