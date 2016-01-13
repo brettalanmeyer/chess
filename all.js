@@ -1,74 +1,56 @@
-/*	// unicode symbols
-	pieces = {
-		wPawn: "&#9817;",
-		wRook: "&#9814;",
-		wKnight: "&#9816;",
-		wBishop: "&#9815;",
-		wQueen: "&#9813;",
-		wKing: "&#9812;",
-		bPawn: "&#9823;",
-		bRook: "&#9820;",
-		bKnight: "&#9822;",
-		bBishop: "&#9821;",
-		bQueen: "&#9819;",
-		bKing: "&#9818;"
-	};*/
-
-
 $(function(){
-
 
 	var Board = function(){
 
 		for(var y = 7; y >= 0; y--){
 			for(var x = 0; x < 8; x++){
-				var square = $("<div />").addClass("square").attr("data-x", x).attr("data-y", y);
-				square.on("click", function(){
-
-				});
-				var coord = $("<span />").addClass("coords").html(x + "," + y);
-				$(".board").append(square.html(coord));
-			}
-		}
-
-		var pieces = [];
-
-		for(var x = 0; x < 8; x++){
-			pieces[x] = [];
-
-			for(var y = 0; y < 8; y++){
-				pieces[x][y] = null;
+				var square = new Square(x, y);
+				$(".board").append(square.getElement());
 			}
 		}
 
 		this.add = function(piece){
-			pieces[piece.x][piece.y] = piece.render();
+			this.getSquare(piece.x, piece.y).append(piece.getElement());
 		};
 
 		this.getSquare = function(x, y){
 			return $(".square[data-x=" + x + "][data-y=" + y + "]");
-		}
+		};
 	};
 
 	var Square = function(x, y){
+		var square = $("<div />").addClass("square").attr("data-x", x).attr("data-y", y);
+		var coord = $("<span />").addClass("coords").html(x + "," + y);
+		square.html(coord);
 
+		square.on("click", function(){
+			console.log("square click");
+		});
+
+		this.getElement = function(){
+			return square;
+		};
 	};
 
 	var Piece = function(x, y, color){
 		this.x = x;
 		this.y = y;
 		this.color = color;
-		this.render = function(){
-			var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
-			piece.on("click", function(){
-				console.log("click", this);
-			})
-			board.getSquare(this.x, this.y).append(piece);
-		}
+
+		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
+
+		piece.on("click", function(){
+			console.log("piece click");
+		});
+
+		this.getElement = function(){
+			return piece;
+		};
 	};
 
 	var Pawn = function(x, y, color){
 		this.kind = "pawn";
+		this.moved = false;
 		Piece.call(this, x, y, color);
 	};
 
@@ -98,6 +80,7 @@ $(function(){
 	};
 
 
+
 	var board = new Board();
 
 	for(var i = 0; i < 8; i++){
@@ -125,6 +108,5 @@ $(function(){
 
 	board.add(new King(4, 0, "white"));
 	board.add(new King(3, 7, "black"));
-
 
 });
