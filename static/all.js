@@ -6,6 +6,7 @@ $(function(){
 
 		this.squares = [];
 		this.pieces = [];
+		this.turn = "white";
 
 		for(var x = 0; x < w; x++){
 			this.squares[x] = [];
@@ -68,6 +69,40 @@ $(function(){
 			}
 		};
 
+		this.getSelectedPiece = function(){
+			for(var x = 0; x < this.pieces.length; x++){
+				for(var y = 0; y < this.pieces[x].length; y++){
+					var piece = this.pieces[x][y];
+					if(piece != null && piece.selected){
+						return piece;
+					}
+				}
+			}
+		};
+
+		this.moveSelectedPieceTo = function(x, y){
+			var square = this.squares[x][y];
+			var piece = board.getSelectedPiece();
+
+			piece.getElement().detach();
+			square.getElement().append(piece.getElement());
+
+			this.pieces[piece.x][piece.x] = null;
+			piece.x = x;
+			piece.y = y;
+			this.pieces[x][y] = piece;
+
+			if(piece.kind == "pawn"){
+				piece.moved = true;
+			}
+
+			board.unselect();
+			board.unhighlight();
+
+			this.turn = this.turn == "white" ? "black" : "white";
+			$(".turn .value").html(this.turn);
+		};
+
 	};
 
 	var Square = function(x, y){
@@ -79,7 +114,13 @@ $(function(){
 		var coord = $("<span />").addClass("coords").html(this.x + "," + this.y);
 		square.html(coord);
 
+		var that = this;
 		square.on("click", function(){
+			var source = $(this);
+			if(!source.hasClass("highlight")){
+				return;
+			}
+			board.moveSelectedPieceTo(source.data("x"), source.data("y"));
 		});
 
 		this.getElement = function(){
@@ -118,7 +159,11 @@ $(function(){
 		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
 		var that = this;
 		piece.on("click", function(){
+			if(board.turn != that.color){
+				return;
+			}
 			if(that.selected){
+				that.selected = false;
 				board.unselect();
 				board.unhighlight();
 				return;
@@ -226,6 +271,8 @@ $(function(){
 			var moves = [];
 
 			for(var i = -7; i <= 7; i++){
+				if(i == 0) continue;
+
 				if(board.isValidMove(this.x + i, this.y + i)){
 					moves.push({ x: this.x + i, y: this.y + i });
 				}
@@ -269,7 +316,6 @@ $(function(){
 
 			return moves;
 		};
-
 
 		Piece.call(this, x, y, color);
 	};
