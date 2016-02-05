@@ -279,8 +279,14 @@ $(function(){
 
 			for(var i in coords){
 				var coord = coords[i];
-				if(board.isValidMove(this.x + coord.x, this.y + coord.y)){
-					moves.push({ x: this.x + coord.x, y: this.y + coord.y });
+				var x = this.x + coord.x;
+				var y = this.y + coord.y;
+
+				if(board.isValidMove(x, y)){
+					var piece = board.getPiece(x, y);
+					if(piece == null || piece.isEnemy(this)){
+						moves.push({ x: x, y: y });
+					}
 				}
 			}
 
