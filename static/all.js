@@ -156,6 +156,15 @@ $(function(){
 			return piece;
 		};
 
+		this.isFriend = function(piece){
+			return this.color == piece.color;
+		}
+
+		this.isEnemy = function(piece){
+			return this.color != piece.color;
+		}
+
+
 		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
 		var that = this;
 		piece.on("click", function(){
@@ -216,16 +225,33 @@ $(function(){
 		this.getValidMoves = function(){
 			var moves = [];
 
-			for(var i = -7; i <= 7; i++){
-				if(i == 0) continue;
+			var move = true;
+			for(var i = 1; i <= 7; i++){
+				checkMoves(this, this.x, this.y + i);
+			}
 
-				if(board.isValidMove(this.x + i, this.y)){
-					moves.push({ x: this.x + i, y: this.y });
-				}
+			var move = true;
+			for(var i = 1; i <= 7; i++){
+				checkMoves(this, this.x, this.y - i);
+			}
 
-				if(board.isValidMove(this.x, this.y + i)){
-					moves.push({ x: this.x, y: this.y + i });
-				}
+			var move = true;
+			for(var i = 1; i <= 7; i++){
+				checkMoves(this, this.x + i, this.y);
+			}
+
+			var move = true;
+			for(var i = 1; i <= 7; i++){
+				checkMoves(this, this.x - i, this.y);
+			}
+
+			function checkMoves(rook, x, y){
+				if(!move) return;
+				if(!board.isValidMove(x, y)) return;
+
+				var piece = board.getPiece(x, y);
+				if(piece == null || piece.isEnemy(rook)) moves.push({ x: x, y: y });
+				if(piece != null) move = false;
 			}
 
 			return moves;
