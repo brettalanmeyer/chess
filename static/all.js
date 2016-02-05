@@ -87,7 +87,7 @@ $(function(){
 			piece.getElement().detach();
 			square.getElement().append(piece.getElement());
 
-			this.pieces[piece.x][piece.x] = null;
+			this.pieces[piece.x][piece.y] = null;
 			piece.x = x;
 			piece.y = y;
 			this.pieces[x][y] = piece;
@@ -194,21 +194,36 @@ $(function(){
 
 		this.getValidMoves = function(){
 			var moves = [];
+			var that = this;
 
 			var yDir = +1;
 			if(this.color == "black"){
 				yDir = -1;
 			}
 
-			var y2 = this.y + yDir;
-			if(board.isValidMove(this.x, y2)){
-				moves.push({ x: this.x, y: y2 });
+			var x = this.x;
+			var y1 = this.y + yDir;
+			var piece1 = board.getPiece(x, y1);
+
+			if(board.isValidMove(x, y1) && piece1 == null){
+				moves.push({ x: x, y: y1 });
 			}
 
 			if(!this.moved){
 				var y2 = this.y + (yDir * 2);
-				if(board.isValidMove(this.x, y2)){
-					moves.push({ x: this.x, y: y2 });
+				var piece2 = board.getPiece(x, y2);
+				if(board.isValidMove(x, y2) && piece2 == null){
+					moves.push({ x: x, y: y2 });
+				}
+			}
+
+			checkKill(x - 1, this.y + yDir);
+			checkKill(x + 1, this.y + yDir);
+
+			function checkKill(x, y){
+				var piece = board.getPiece(x, y);
+				if(piece != null && piece.isEnemy(that)){
+					moves.push({ x: x, y: y });
 				}
 			}
 
