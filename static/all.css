@@ -37,10 +37,11 @@ html, body {
 	position: relative;
 }
 
-.board.black {
+.board.white {
 	transform: rotate(0deg);
 }
-.board.red {
+
+.board.black {
 	transform: rotate(180deg);
 }
 
@@ -57,7 +58,7 @@ html, body {
 	position: relative;
 }
 
-.square:nth-child(8n + 1){
+.board .square:nth-child(8n + 1){
 	clear: both;
 }
 
@@ -111,6 +112,27 @@ html, body {
 	height: 100%;
 	font-size: 11vh;
 	line-height: 11vh;
+}
+
+.jail {
+	border: solid 1px #000;
+	display: inline-block;
+	position: relative;
+}
+
+.jail.white {
+	margin-right: 40px;
+}
+.jail.black {
+	margin-left: 40px;
+}
+
+.jail .square {
+	border: none;
+}
+
+.jail .square:nth-child(2n + 1){
+	clear: both;
 }
 
 .white.pawn::after {

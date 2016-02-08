@@ -92,11 +92,23 @@ $(function(){
 
 		// move object and html from source to destination
 		this.moveSelectedPieceTo = function(x, y){
-			var square = this.squares[x][y];
+			var square = this.getSquare(x, y);
+			var enemy = this.getPiece(x, y);
 			var piece = board.getSelectedPiece();
 
+			if(enemy != null){
+				var jailSquare = $(".jail." + enemy.color + " .square").not(".taken").first();
+
+				enemy.getElement().detach();
+				jailSquare.addClass("taken").html(enemy.getElement());
+
+				this.pieces[enemy.x][enemy.y] = null;
+				enemy.x = null;
+				enemy.y = null;
+			}
+
 			piece.getElement().detach();
-			square.getElement().append(piece.getElement());
+			square.getElement().html(piece.getElement());
 
 			this.pieces[piece.x][piece.y] = null;
 			piece.x = x;
