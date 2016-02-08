@@ -6,8 +6,11 @@ $(function(){
 
 		this.squares = [];
 		this.pieces = [];
+
+		// white always move first
 		this.turn = "white";
 
+		// define position for squares and pieces in array for w x h board
 		for(var x = 0; x < w; x++){
 			this.squares[x] = [];
 			this.pieces[x] = [];
@@ -17,6 +20,7 @@ $(function(){
 			}
 		}
 
+		// add square html elements to board
 		for(var y = h - 1; y >= 0; y--){
 			for(var x = 0; x < w; x++){
 				var square = new Square(x, y);
@@ -25,6 +29,7 @@ $(function(){
 			}
 		}
 
+		// add pieces to board
 		this.add = function(piece){
 			this.pieces[piece.x][piece.y] = piece;
 			this.getSquare(piece.x, piece.y).getElement().append(piece.getElement());
@@ -38,7 +43,8 @@ $(function(){
 			return this.pieces[x][y];
 		};
 
-		this.isValidMove = function(x, y){
+		// detemine if square is within the bounds of the w x h board
+		this.isSquareInBounds = function(x, y){
 			if(x < 0) return false;
 			if(x > w - 1) return false;
 			if(y < 0) return false;
@@ -46,10 +52,12 @@ $(function(){
 			return true;
 		};
 
+		// highlight specific square
 		this.highlight = function(x, y){
 			this.getSquare(x, y).highlight();
 		};
 
+		// unhighlight all squares
 		this.unhighlight = function(){
 			for(var x = 0; x < this.pieces.length; x++){
 				for(var y = 0; y < this.pieces[x].length; y++){
@@ -58,6 +66,7 @@ $(function(){
 			}
 		};
 
+		// unselect all squares
 		this.unselect = function(){
 			for(var x = 0; x < this.pieces.length; x++){
 				for(var y = 0; y < this.pieces[x].length; y++){
@@ -69,6 +78,7 @@ $(function(){
 			}
 		};
 
+		// return piece that has selected value set
 		this.getSelectedPiece = function(){
 			for(var x = 0; x < this.pieces.length; x++){
 				for(var y = 0; y < this.pieces[x].length; y++){
@@ -80,6 +90,7 @@ $(function(){
 			}
 		};
 
+		// move object and html from source to destination
 		this.moveSelectedPieceTo = function(x, y){
 			var square = this.squares[x][y];
 			var piece = board.getSelectedPiece();
@@ -110,6 +121,8 @@ $(function(){
 		this.y = y;
 		this.highlighted = false;
 
+		var cls = "highlight";
+
 		var square = $("<div />").addClass("square").attr("data-x", this.x).attr("data-y", this.y);
 		var coord = $("<span />").addClass("coords").html(this.x + "," + this.y);
 		square.html(coord);
@@ -117,24 +130,27 @@ $(function(){
 		var that = this;
 		square.on("click", function(){
 			var source = $(this);
-			if(!source.hasClass("highlight")){
+			if(!source.hasClass(cls)){
 				return;
 			}
 			board.moveSelectedPieceTo(source.data("x"), source.data("y"));
 		});
 
+		// return jquery object
 		this.getElement = function(){
 			return square;
 		};
 
+		// add css class for highlighting
 		this.highlight = function(){
 			this.highlighted = true;
-			square.addClass("highlight");
+			square.addClass(cls);
 		};
 
+		// remove css class for highlighting
 		this.unhighlight = function(){
 			this.highlighted = false;
-			square.removeClass("highlight");
+			square.removeClass(cls);
 		};
 	};
 
@@ -170,6 +186,7 @@ $(function(){
 			if(board.turn != that.color){
 				return;
 			}
+
 			if(that.selected){
 				that.selected = false;
 				board.unselect();
@@ -180,6 +197,7 @@ $(function(){
 			board.unselect();
 			board.unhighlight();
 			that.selected = true;
+
 			var moves = that.getValidMoves();
 			for(var i in moves){
 				var move = moves[i];
@@ -205,14 +223,14 @@ $(function(){
 			var y1 = this.y + yDir;
 			var piece1 = board.getPiece(x, y1);
 
-			if(board.isValidMove(x, y1) && piece1 == null){
+			if(board.isSquareInBounds(x, y1) && piece1 == null){
 				moves.push({ x: x, y: y1 });
 			}
 
 			if(!this.moved){
 				var y2 = this.y + (yDir * 2);
 				var piece2 = board.getPiece(x, y2);
-				if(board.isValidMove(x, y2) && piece2 == null){
+				if(board.isSquareInBounds(x, y2) && piece2 == null){
 					moves.push({ x: x, y: y2 });
 				}
 			}
@@ -221,6 +239,8 @@ $(function(){
 			checkKill(x + 1, this.y + yDir);
 
 			function checkKill(x, y){
+				if(!board.isSquareInBounds(x, y)) return;
+
 				var piece = board.getPiece(x, y);
 				if(piece != null && piece.isEnemy(that)){
 					moves.push({ x: x, y: y });
@@ -239,34 +259,21 @@ $(function(){
 		this.getValidMoves = function(){
 			var moves = [];
 			var that = this;
+			var moveCheckers = [];
 
-			var move = true;
-			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x, this.y + i);
+			for(var i = 0; i < 4; i++){
+				moveCheckers.push(new MoveChecker());
 			}
 
-			var move = true;
 			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x, this.y - i);
+				moveCheckers[0].check(this, this.x, this.y + i);	// north
+				moveCheckers[1].check(this, this.x + i, this.y);	// east
+				moveCheckers[2].check(this, this.x, this.y - i);	// south
+				moveCheckers[3].check(this, this.x - i, this.y);	// west
 			}
 
-			var move = true;
-			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x + i, this.y);
-			}
-
-			var move = true;
-			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x - i, this.y);
-			}
-
-			function checkMoves(x, y){
-				if(!move) return;
-				if(!board.isValidMove(x, y)) return;
-
-				var piece = board.getPiece(x, y);
-				if(piece == null || piece.isEnemy(that)) moves.push({ x: x, y: y });
-				if(piece != null) move = false;
+			for(var i in moveCheckers){
+				moves = moves.concat(moveCheckers[i].getMoves());
 			}
 
 			return moves;
@@ -297,7 +304,7 @@ $(function(){
 				var x = this.x + coord.x;
 				var y = this.y + coord.y;
 
-				if(board.isValidMove(x, y)){
+				if(board.isSquareInBounds(x, y)){
 					var piece = board.getPiece(x, y);
 					if(piece == null || piece.isEnemy(this)){
 						moves.push({ x: x, y: y });
@@ -317,34 +324,21 @@ $(function(){
 		this.getValidMoves = function(){
 			var moves = [];
 			var that = this;
+			var moveCheckers = [];
 
-			var move = true;
-			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x + i, this.y + i);
+			for(var i = 0; i < 4; i++){
+				moveCheckers.push(new MoveChecker());
 			}
 
-			var move = true;
 			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x + i, this.y - i);
+				moveCheckers[0].check(this, this.x + i, this.y + i); // north east
+				moveCheckers[1].check(this, this.x + i, this.y - i); // south east
+				moveCheckers[2].check(this, this.x - i, this.y + i); // north west
+				moveCheckers[3].check(this, this.x - i, this.y - i); // south west
 			}
 
-			var move = true;
-			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x - i, this.y + i);
-			}
-
-			var move = true;
-			for(var i = 1; i <= 7; i++){
-				checkMoves(this.x - i, this.y + i);
-			}
-
-			function checkMoves(x, y){
-				if(!move) return;
-				if(!board.isValidMove(x, y)) return;
-
-				var piece = board.getPiece(x, y);
-				if(piece == null || piece.isEnemy(that)) moves.push({ x: x, y: y });
-				if(piece != null) move = false;
+			for(var i in moveCheckers){
+				moves = moves.concat(moveCheckers[i].getMoves());
 			}
 
 			return moves;
@@ -358,25 +352,26 @@ $(function(){
 
 		this.getValidMoves = function(){
 			var moves = [];
+			var that = this;
+			var moveCheckers = [];
 
-			for(var i = -7; i <= 7; i++){
-				if(i == 0) continue;
+			for(var i = 0; i < 8; i++){
+				moveCheckers.push(new MoveChecker());
+			}
 
-				if(board.isValidMove(this.x + i, this.y)){
-					moves.push({ x: this.x + i, y: this.y });
-				}
+			for(var i = 1; i <= 7; i++){
+				moveCheckers[0].check(this, this.x, this.y + i);		// north
+				moveCheckers[1].check(this, this.x + i, this.y + i);	// north east
+				moveCheckers[2].check(this, this.x + i, this.y);		// east
+				moveCheckers[3].check(this, this.x + i, this.y - i);	// south east
+				moveCheckers[4].check(this, this.x, this.y - i);		// south
+				moveCheckers[5].check(this, this.x - i, this.y - i);	// south west
+				moveCheckers[6].check(this, this.x - i, this.y);		// west
+				moveCheckers[7].check(this, this.x - i, this.y + i);	// north west
+			}
 
-				if(board.isValidMove(this.x, this.y + i)){
-					moves.push({ x: this.x, y: this.y + i });
-				}
-
-				if(board.isValidMove(this.x + i, this.y + i)){
-					moves.push({ x: this.x + i, y: this.y + i });
-				}
-
-				if(board.isValidMove(this.x + i, this.y - i)){
-					moves.push({ x: this.x + i, y: this.y - i });
-				}
+			for(var i in moveCheckers){
+				moves = moves.concat(moveCheckers[i].getMoves());
 			}
 
 			return moves;
@@ -407,7 +402,7 @@ $(function(){
 				var x = this.x + coord.x;
 				var y = this.y + coord.y;
 
-				if(board.isValidMove(x, y)){
+				if(board.isSquareInBounds(x, y)){
 					var piece = board.getPiece(x, y);
 					if(piece == null || piece.isEnemy(this)){
 						moves.push({ x: x, y: y });
@@ -421,6 +416,26 @@ $(function(){
 		Piece.call(this, x, y, color);
 	};
 
+	var MoveChecker = function(){
+		this.cont = true;
+		this.moves = [];
+
+		this.check = function(piece, x, y){
+			if(!this.cont) return;
+			if(!board.isSquareInBounds(x, y)){
+				this.cont = false;
+				return;
+			}
+
+			var boardPiece = board.getPiece(x, y);
+			if(boardPiece == null || boardPiece.isEnemy(piece)) this.moves.push({ x: x, y: y });
+			if(boardPiece != null) this.cont = false;
+		};
+
+		this.getMoves = function(){
+			return this.moves;
+		};
+	};
 
 
 	board = new Board(8, 8);
