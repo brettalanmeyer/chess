@@ -37,14 +37,6 @@ html, body {
 	position: relative;
 }
 
-.board.white {
-	transform: rotate(0deg);
-}
-
-.board.black {
-	transform: rotate(180deg);
-}
-
 .square {
 	width: 11vh;
 	height: 11vh;

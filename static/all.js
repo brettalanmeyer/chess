@@ -1,32 +1,50 @@
 $(function(){
 
+	var player = "white";
+
+	var player1 = "white";
+	var player2 = "black";
+	if($(".board").hasClass("black")){
+		var player = "black";
+		player1 = "black";
+		player2 = "white";
+	}
+
 	var board;
 
-	var Board = function(w, h){
+	var Board = function(){
+
+		var width = 8;
+		var height = 8;
 
 		this.squares = [];
 		this.pieces = [];
+		this.socket;
 
 		// white always move first
 		this.turn = "white";
 
-		// define position for squares and pieces in array for w x h board
-		for(var x = 0; x < w; x++){
-			this.squares[x] = [];
-			this.pieces[x] = [];
-			for(var y = 0; y < h; y++){
-				this.pieces[x][y] = null;
-				this.squares[x][y] = null;
+		this.init = function(){
+			// define position for squares and pieces in array for w x h board
+			for(var x = 0; x < width; x++){
+				this.squares[x] = [];
+				this.pieces[x] = [];
+				for(var y = 0; y < height; y++){
+					this.pieces[x][y] = null;
+					this.squares[x][y] = null;
+				}
 			}
-		}
 
-		// add square html elements to board
-		for(var y = h - 1; y >= 0; y--){
-			for(var x = 0; x < w; x++){
-				var square = new Square(x, y);
-				this.squares[square.x][square.y] = square;
-				$(".board").append(square.getElement());
+			// add square html elements to board
+			for(var y = height - 1; y >= 0; y--){
+				for(var x = 0; x < width; x++){
+					var square = new Square(x, y);
+					this.squares[square.x][square.y] = square;
+					$(".board").append(square.getElement());
+				}
 			}
+
+			return this;
 		}
 
 		// add pieces to board
@@ -46,9 +64,9 @@ $(function(){
 		// detemine if square is within the bounds of the w x h board
 		this.isSquareInBounds = function(x, y){
 			if(x < 0) return false;
-			if(x > w - 1) return false;
+			if(x > width - 1) return false;
 			if(y < 0) return false;
-			if(y > h - 1) return false;
+			if(y > height - 1) return false;
 			return true;
 		};
 
@@ -96,6 +114,9 @@ $(function(){
 			var enemy = this.getPiece(x, y);
 			var piece = board.getSelectedPiece();
 
+			var x0 = piece.x;
+			var y0 = piece.y;
+
 			if(enemy != null){
 				var jailSquare = $(".jail." + enemy.color + " .square").not(".taken").first();
 
@@ -108,7 +129,7 @@ $(function(){
 			}
 
 			piece.getElement().detach();
-			square.getElement().html(piece.getElement());
+			square.getElement().append(piece.getElement());
 
 			this.pieces[piece.x][piece.y] = null;
 			piece.x = x;
@@ -121,6 +142,8 @@ $(function(){
 
 			board.unselect();
 			board.unhighlight();
+
+			sendMove(x0, y0, x, y);
 
 			this.turn = this.turn == "white" ? "black" : "white";
 			$(".turn .value").html(this.turn);
@@ -195,7 +218,7 @@ $(function(){
 		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
 		var that = this;
 		piece.on("click", function(){
-			if(board.turn != that.color){
+			if(that.color != board.turn){
 				return;
 			}
 
@@ -227,7 +250,7 @@ $(function(){
 			var that = this;
 
 			var yDir = +1;
-			if(this.color == "black"){
+			if(this.color == player2){
 				yDir = -1;
 			}
 
@@ -450,32 +473,68 @@ $(function(){
 	};
 
 
-	board = new Board(8, 8);
+
+	board = new Board().init();
 
 	for(var i = 0; i < 8; i++){
-		board.add(new Pawn(i, 1, "white"));
-		board.add(new Pawn(i, 6, "black"));
+		board.add(new Pawn(i, 1, player1));
+		board.add(new Pawn(i, 6, player2));
 	}
 
-	board.add(new Rook(0, 0, "white"));
-	board.add(new Rook(7, 0, "white"));
-	board.add(new Rook(0, 7, "black"));
-	board.add(new Rook(7, 7, "black"));
+	board.add(new Rook(0, 0, player1));
+	board.add(new Rook(7, 0, player1));
+	board.add(new Rook(0, 7, player2));
+	board.add(new Rook(7, 7, player2));
 
-	board.add(new Knight(1, 0, "white"));
-	board.add(new Knight(6, 0, "white"));
-	board.add(new Knight(1, 7, "black"));
-	board.add(new Knight(6, 7, "black"));
+	board.add(new Knight(1, 0, player1));
+	board.add(new Knight(6, 0, player1));
+	board.add(new Knight(1, 7, player2));
+	board.add(new Knight(6, 7, player2));
 
-	board.add(new Bishop(2, 0, "white"));
-	board.add(new Bishop(5, 0, "white"));
-	board.add(new Bishop(2, 7, "black"));
-	board.add(new Bishop(5, 7, "black"));
+	board.add(new Bishop(2, 0, player1));
+	board.add(new Bishop(5, 0, player1));
+	board.add(new Bishop(2, 7, player2));
+	board.add(new Bishop(5, 7, player2));
 
-	board.add(new Queen(3, 0, "white"));
-	board.add(new Queen(4, 7, "black"));
+	board.add(new Queen(3, 0, player1));
+	board.add(new Queen(4, 7, player2));
 
-	board.add(new King(4, 0, "white"));
-	board.add(new King(3, 7, "black"));
+	board.add(new King(4, 0, player1));
+	board.add(new King(3, 7, player2));
+
+
+
+	var socket = io.connect("http://" + document.domain + ':' + location.port + "/move");
+	var send = true;
+
+	socket.on("receive-move", function(data){
+
+		if(data.player != player){
+
+			send = false;
+
+			$(".square[data-x=" + data.x0 + "][data-y=" + data.y0 + "]").find(".piece").click();
+			$(".square[data-x=" + data.x1 + "][data-y=" + data.y1 + "]").click();
+
+			board.turn = data.player == "white" ? "black" : "white";
+
+			send = true;
+
+		}
+
+	});
+
+	function sendMove(x0, y0, x1, y1){
+		if(!send) return;
+
+		socket.emit("send-move", {
+			"x0": x0,
+			"y0": y0,
+			"x1": x1,
+			"y1": y1,
+			"player": board.turn
+		});
+
+	}
 
 });

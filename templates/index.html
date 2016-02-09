@@ -12,10 +12,10 @@
 	</head>
 	<body>
 
-		<div class="turn">
+		<!-- <div class="turn">
 			<span class="label">Turn:</span>
 			<span class="value">white</span>
-		</div>
+		</div> -->
 
 		<div class="container outer">
 			<div class="container inner">
@@ -39,7 +39,7 @@
 					<div class="square"></div>
 				</div>
 
-				<div class="board"></div>
+				<div class="board {{ color }}"></div>
 
 				<div class="jail black">
 					<div class="square"></div>
@@ -64,6 +64,7 @@
 		</div>
 
 		<script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='socket.io.min.js') }}"></script>
 		<script src="{{ url_for('static', filename='all.js') }}"></script>
 
 	</body>
