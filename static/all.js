@@ -19,7 +19,6 @@ $(function(){
 
 		this.squares = [];
 		this.pieces = [];
-		this.socket;
 
 		// white always move first
 		this.turn = "white";
@@ -110,44 +109,92 @@ $(function(){
 
 		// move object and html from source to destination
 		this.moveSelectedPieceTo = function(x, y){
-			var square = this.getSquare(x, y);
-			var enemy = this.getPiece(x, y);
 			var piece = board.getSelectedPiece();
 
-			var x0 = piece.x;
-			var y0 = piece.y;
-
-			if(enemy != null){
-				var jailSquare = $(".jail." + enemy.color + " .square").not(".taken").first();
-
-				enemy.getElement().detach();
-				jailSquare.addClass("taken").html(enemy.getElement());
-
-				this.pieces[enemy.x][enemy.y] = null;
-				enemy.x = null;
-				enemy.y = null;
-			}
-
-			piece.getElement().detach();
-			square.getElement().append(piece.getElement());
-
-			this.pieces[piece.x][piece.y] = null;
-			piece.x = x;
-			piece.y = y;
-			this.pieces[x][y] = piece;
-
-			if(piece.kind == "pawn"){
-				piece.moved = true;
-			}
+			board.killPiece(x, y);
+			board.movePiece(piece.x, piece.y, x, y);
 
 			board.unselect();
 			board.unhighlight();
 
-			sendMove(x0, y0, x, y);
-
 			this.turn = this.turn == "white" ? "black" : "white";
 			$(".turn .value").html(this.turn);
 		};
+
+		// remove piece from board and move to jail
+		this.killPiece = function(x, y){
+			var enemy = this.getPiece(x, y);
+
+			if(enemy == null) return;
+
+			var jailSquare = $(".jail." + enemy.color + " .square").not(".taken").first();
+
+			enemy.getElement().detach();
+			jailSquare.addClass("taken").html(enemy.getElement());
+
+			this.pieces[enemy.x][enemy.y] = null;
+			enemy.x = null;
+			enemy.y = null;
+			enemy.dead = true;
+		};
+
+		this.movePiece = function(x0, y0, x1, y1){
+			var piece = board.getPiece(x0, y0);
+			piece.getElement().detach();
+
+			var square = board.getSquare(x1, y1);
+			square.getElement().append(piece.getElement());
+
+			this.pieces[piece.x][piece.y] = null;
+			piece.x = x1;
+			piece.y = y1;
+			piece.moved = true;
+			this.pieces[piece.x][piece.y] = piece;
+
+			sendMove(x0, y0, x1, y1);
+		};
+
+		this.castle = function(piece){
+
+			var king = board.getSelectedPiece();
+			var rook = piece;
+
+			if(king == null) return false;
+			if(rook == null) return false;
+
+			if(king.moved == true) return false;
+			if(rook.moved == true) return false;
+
+			if(king.kind != "king") return false;
+			if(rook.kind != "rook") return false;
+
+			var y = 0;
+			var xStart = 1;
+			var xEnd = 3;
+			var xRook = 3;
+			var xKing = 2;
+			if(rook.x == 7){
+				xStart = 5;
+				xEnd = 6;
+				xRook = 5;
+				xKing = 6;
+			}
+
+			for(var x = xStart; x <= xEnd; x++){
+				if(board.getPiece(x, y) != null){
+					return false;
+				}
+			}
+
+			board.movePiece(rook.x, 0, xRook, 0);
+			board.movePiece(king.x, 0, xKing, 0);
+
+			board.unselect();
+			board.unhighlight();
+
+			return true;
+
+		}
 
 	};
 
@@ -194,6 +241,8 @@ $(function(){
 		this.y = y;
 		this.color = color;
 		this.selected = false;
+		this.moved = false;
+		this.dead = false;
 
 		this.select = function(){
 			this.selected = true;
@@ -218,7 +267,12 @@ $(function(){
 		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
 		var that = this;
 		piece.on("click", function(){
+
 			if(that.color != board.turn){
+				return;
+			}
+
+			if(board.castle(that)){
 				return;
 			}
 
@@ -243,7 +297,6 @@ $(function(){
 
 	var Pawn = function(x, y, color){
 		this.kind = "pawn";
-		this.moved = false;
 
 		this.getValidMoves = function(){
 			var moves = [];
@@ -496,11 +549,17 @@ $(function(){
 	board.add(new Bishop(2, 7, player2));
 	board.add(new Bishop(5, 7, player2));
 
-	board.add(new Queen(3, 0, player1));
-	board.add(new Queen(4, 7, player2));
 
-	board.add(new King(4, 0, player1));
-	board.add(new King(3, 7, player2));
+	var x1 = player1 == "white" ? 3 : 4;
+	var x2 = player1 == "white" ? 4 : 3;
+
+	board.add(new Queen(x1, 0, player1));
+	board.add(new King(x2, 0, player1));
+
+	board.add(new Queen(x1, 7, player2));
+	board.add(new King(x2, 7, player2));
+
+
 
 
 

@@ -12,15 +12,15 @@
 	</head>
 	<body>
 
-		<!-- <div class="turn">
+		<div class="turn">
 			<span class="label">Turn:</span>
 			<span class="value">white</span>
-		</div> -->
+		</div>
 
 		<div class="container outer">
 			<div class="container inner">
 
-				<div class="jail white">
+				<div class="jail {{ friend }}">
 					<div class="square"></div>
 					<div class="square"></div>
 					<div class="square"></div>
@@ -39,9 +39,9 @@
 					<div class="square"></div>
 				</div>
 
-				<div class="board {{ color }}"></div>
+				<div class="board {{ friend }}"></div>
 
-				<div class="jail black">
+				<div class="jail {{ enemy }}">
 					<div class="square"></div>
 					<div class="square"></div>
 					<div class="square"></div>

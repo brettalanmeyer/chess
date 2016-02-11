@@ -12,14 +12,17 @@ thread = None
 
 @app.route("/<path:color>/")
 def index(color):
+	friend = "white"
+	enemy = "black"
+
 	if(color != "white"):
-		color = "black"
-	return render_template("index.html", color = color)
+		friend = "black"
+		enemy = "white"
+
+	return render_template("index.html", friend = friend, enemy = enemy)
 
 @socketio.on("send-move", namespace="/move")
 def move(data):
-
-	print("here")
 
 	emit("receive-move", {
 		"x0": abs(7 - data["x0"]),
