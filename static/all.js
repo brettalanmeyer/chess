@@ -210,13 +210,13 @@ $(function(){
 		square.html(coord);
 
 		var that = this;
-		square.on("click", function(){
-			var source = $(this);
-			if(!source.hasClass(cls)){
+
+		this.select = function(){
+			if(!square.hasClass(cls)){
 				return;
 			}
-			board.moveSelectedPieceTo(source.data("x"), source.data("y"));
-		});
+			board.moveSelectedPieceTo(that.x, that.y);
+		}
 
 		// return jquery object
 		this.getElement = function(){
@@ -234,6 +234,9 @@ $(function(){
 			this.highlighted = false;
 			square.removeClass(cls);
 		};
+
+		square.on("click", this.select);
+
 	};
 
 	var Piece = function(x, y, color){
@@ -244,30 +247,11 @@ $(function(){
 		this.moved = false;
 		this.dead = false;
 
-		this.select = function(){
-			this.selected = true;
-		};
-
-		this.unselect = function(){
-			this.selected = false;
-		};
-
-		this.getElement = function(){
-			return piece;
-		};
-
-		this.isFriend = function(piece){
-			return this.color == piece.color;
-		}
-
-		this.isEnemy = function(piece){
-			return this.color != piece.color;
-		}
-
 		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
-		var that = this;
-		piece.on("click", function(){
 
+		var that = this;
+
+		this.select = function(){
 			if(that.color != board.turn){
 				return;
 			}
@@ -292,7 +276,31 @@ $(function(){
 				var move = moves[i];
 				board.highlight(move.x, move.y);
 			}
+		};
+
+		this.unselect = function(){
+			this.selected = false;
+		};
+
+		this.getElement = function(){
+			return piece;
+		};
+
+		this.isFriend = function(piece){
+			return this.color == piece.color;
+		}
+
+		this.isEnemy = function(piece){
+			return this.color != piece.color;
+		}
+
+		piece.on("click", function(){
+			if(player != board.turn){
+				return;
+			}
+			that.select();
 		});
+
 	};
 
 	var Pawn = function(x, y, color){
@@ -562,7 +570,6 @@ $(function(){
 
 
 
-
 	var socket = io.connect("http://" + document.domain + ':' + location.port + "/move");
 	var send = true;
 
@@ -572,8 +579,11 @@ $(function(){
 
 			send = false;
 
-			$(".square[data-x=" + data.x0 + "][data-y=" + data.y0 + "]").find(".piece").click();
-			$(".square[data-x=" + data.x1 + "][data-y=" + data.y1 + "]").click();
+			var piece = board.getPiece(data.x0, data.y0);
+			piece.select();
+
+			var square = board.getSquare(data.x1, data.y1);
+			square.select();
 
 			board.turn = data.player == "white" ? "black" : "white";
 
