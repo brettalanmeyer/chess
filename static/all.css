@@ -32,16 +32,21 @@ html, body {
 }
 
 .board {
-	border: solid 1px #000;
 	display: inline-block;
 	position: relative;
 }
 
-.square {
-	width: 11vh;
-	height: 11vh;
-	border: solid 1px #000;
+.square,
+.coord {
+	width: 10vh;
+	height: 10vh;
 	float: left;
+	font-size: 4vh;
+	line-height: 4vh;
+}
+
+.square {
+	border: solid 1px #000;
 	background-color: #fff;
 	background-size: 120% 120%;
 	background-position: center center;
@@ -50,7 +55,60 @@ html, body {
 	position: relative;
 }
 
-.board .square:nth-child(8n + 1){
+.coord.letter {
+	height: 5vh;
+}
+
+.coord:nth-child(2),
+.coord:nth-child(3),
+.coord:nth-child(4),
+.coord:nth-child(5),
+.coord:nth-child(6),
+.coord:nth-child(7),
+.coord:nth-child(8),
+.coord:nth-child(9) {
+	border-bottom: solid 1px #000;
+}
+
+.coord:nth-child(11),
+.coord:nth-child(21),
+.coord:nth-child(31),
+.coord:nth-child(41),
+.coord:nth-child(51),
+.coord:nth-child(61),
+.coord:nth-child(71),
+.coord:nth-child(81) {
+	border-right: solid 1px #000;
+}
+
+.coord:nth-child(20),
+.coord:nth-child(30),
+.coord:nth-child(40),
+.coord:nth-child(50),
+.coord:nth-child(60),
+.coord:nth-child(70),
+.coord:nth-child(80),
+.coord:nth-child(90) {
+	border-left: solid 1px #000;
+}
+
+.coord:nth-child(92),
+.coord:nth-child(93),
+.coord:nth-child(94),
+.coord:nth-child(95),
+.coord:nth-child(96),
+.coord:nth-child(97),
+.coord:nth-child(98),
+.coord:nth-child(99) {
+	border-top: solid 1px #000;
+}
+
+.coord.number {
+	width: 5vh;
+	line-height: 9vh;
+}
+
+.board div:nth-child(10n + 1){
 	clear: both;
 }
 
@@ -102,21 +160,15 @@ html, body {
 .piece {
 	width: 100%;
 	height: 100%;
-	font-size: 11vh;
-	line-height: 11vh;
+	font-size: 10vh;
+	line-height: 10vh;
 }
 
 .jail {
 	border: solid 1px #000;
 	display: inline-block;
 	position: relative;
-}
-
-.jail.white {
-	margin-right: 40px;
-}
-.jail.black {
-	margin-left: 40px;
+	margin: 0 40px 5vh 40px;
 }
 
 .jail .square {

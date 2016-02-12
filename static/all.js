@@ -4,6 +4,7 @@ $(function(){
 
 	var Board = function(){
 
+		var boardEl = $(".board");
 		var width = 8;
 		var height = 8;
 
@@ -22,7 +23,8 @@ $(function(){
 		var that = this;
 
 		this.init = function(){
-			if($(".board").hasClass("black")){
+
+			if(boardEl.hasClass("black")){
 				that.player = "black";
 				that.player1 = "black";
 				that.player2 = "white";
@@ -38,14 +40,30 @@ $(function(){
 				}
 			}
 
+			var coordEl = $("<div />").addClass("coord");
+
+			boardEl.append(coordEl.clone().addClass("letter number"));
+			for(var i = 0; i < 8; i++){
+				boardEl.append(coordEl.clone().addClass("letter").html(String.fromCharCode(97 + i)));
+			}
+			boardEl.append(coordEl.clone().addClass("letter number"));
+
 			// add square html elements to board
 			for(var y = height - 1; y >= 0; y--){
+				boardEl.append(coordEl.clone().addClass("number").html(y + 1));
 				for(var x = 0; x < width; x++){
 					var square = new Square(x, y);
 					this.squares[square.x][square.y] = square;
-					$(".board").append(square.getElement());
+					boardEl.append(square.getElement());
 				}
+				boardEl.append(coordEl.clone().addClass("number").html(y + 1));
 			}
+
+			boardEl.append(coordEl.clone().addClass("letter number"));
+			for(var i = 0; i < 8; i++){
+				boardEl.append(coordEl.clone().addClass("letter").html(String.fromCharCode(97 + i)));
+			}
+			boardEl.append(coordEl.clone().addClass("letter number"));
 
 			return this;
 		}
@@ -53,7 +71,7 @@ $(function(){
 		// add pieces to board
 		this.add = function(piece){
 			this.pieces[piece.x][piece.y] = piece;
-			this.getSquare(piece.x, piece.y).getElement().append(piece.getElement());
+			this.getSquare(piece.x, piece.y).getElement().html(piece.getElement());
 		};
 
 		this.getSquare = function(x, y){
@@ -209,6 +227,7 @@ $(function(){
 		};
 
 		this.clearSelectedPiece = function(){
+			$(".square").removeClass("highlight");
 			this.selectedPiece = null;
 		};
 	};
@@ -218,8 +237,6 @@ $(function(){
 		this.y = y;
 
 		var square = $("<div />").addClass("square").attr("data-x", this.x).attr("data-y", this.y);
-		var coord = $("<span />").addClass("coords").html(this.x + "," + this.y);
-		square.html(coord);
 
 		var that = this;
 
@@ -256,7 +273,7 @@ $(function(){
 		this.moved = false;
 		this.dead = false;
 
-		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind);
+		var piece = $("<div />").addClass("piece").addClass(this.color).addClass(this.kind).attr("title", this.kind.charAt(0).toUpperCase() + this.kind.slice(1));
 
 		var that = this;
 
@@ -271,6 +288,7 @@ $(function(){
 
 			if(board.hasSelectedPiece() && board.getSelectedPiece() == that){
 				board.clearSelectedPiece();
+				return;
 			} else {
 				board.setSelectedPiece(that);
 			}
