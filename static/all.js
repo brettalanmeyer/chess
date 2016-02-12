@@ -1,21 +1,15 @@
 $(function(){
 
-	var player = "white";
-
-	var player1 = "white";
-	var player2 = "black";
-	if($(".board").hasClass("black")){
-		var player = "black";
-		player1 = "black";
-		player2 = "white";
-	}
-
 	var board;
 
 	var Board = function(){
 
 		var width = 8;
 		var height = 8;
+
+		this.player = "white";
+		this.player1 = "white";
+		this.player2 = "black";
 
 		this.squares = [];
 		this.pieces = [];
@@ -25,7 +19,15 @@ $(function(){
 		// white always move first
 		this.turn = "white";
 
+		var that = this;
+
 		this.init = function(){
+			if($(".board").hasClass("black")){
+				that.player = "black";
+				that.player1 = "black";
+				that.player2 = "white";
+			}
+
 			// define position for squares and pieces in array for w x h board
 			for(var x = 0; x < width; x++){
 				this.squares[x] = [];
@@ -112,6 +114,7 @@ $(function(){
 			piece.moved = true;
 			this.pieces[piece.x][piece.y] = piece;
 
+			board.clearValidMoves();
 			sendMove(x0, y0, x1, y1);
 		};
 
@@ -150,9 +153,6 @@ $(function(){
 			board.movePiece(rook.x, 0, xRook, 0);
 			board.movePiece(king.x, 0, xKing, 0);
 
-			board.unselect();
-			board.unhighlight();
-
 			return true;
 		};
 
@@ -170,17 +170,20 @@ $(function(){
 					for(var k in moves){
 						var move = moves[k];
 						var piece = board.pieces[move.x][move.y];
-						if(piece == null) continue;
-
-						if(piece.kind == "king"){
+						if(piece != null && piece.kind == "king"){
 							alert(piece.color + " king is in check");
 						}
+						board.clearValidMoves();
 					}
 				}
 			}
 		};
 
 		this.setValidMoves = function(moves){
+			for(var i in moves){
+				var move = moves[i];
+				$(".square[data-x=" + move.x + "][data-y=" + move.y + "]").addClass("highlight");
+			}
 			this.validMoves = moves;
 		};
 
@@ -189,6 +192,7 @@ $(function(){
 		};
 
 		this.clearValidMoves = function(){
+			$(".square").removeClass("highlight");
 			this.validMoves = [];
 		};
 
@@ -256,10 +260,10 @@ $(function(){
 
 		var that = this;
 
-		this.select = function(){
-			/*if(that.color != board.turn){
+		this.select = function(checkColor){
+			if(checkColor && that.color != board.turn){
 				return;
-			}*/
+			}
 
 			if(board.castle(that)){
 				return;
@@ -290,10 +294,10 @@ $(function(){
 		}
 
 		piece.on("click", function(){
-			if(player != board.turn){
+			if(board.player != board.turn){
 				return;
 			}
-			that.select()
+			that.select(true);
 		});
 
 	};
@@ -306,7 +310,7 @@ $(function(){
 			var that = this;
 
 			var yDir = +1;
-			if(this.color == player2){
+			if(this.color == board.player2){
 				yDir = -1;
 			}
 
@@ -533,34 +537,34 @@ $(function(){
 	board = new Board().init();
 
 	for(var i = 0; i < 8; i++){
-		board.add(new Pawn(i, 1, player1));
-		board.add(new Pawn(i, 6, player2));
+		board.add(new Pawn(i, 1, board.player1));
+		board.add(new Pawn(i, 6, board.player2));
 	}
 
-	board.add(new Rook(0, 0, player1));
-	board.add(new Rook(7, 0, player1));
-	board.add(new Rook(0, 7, player2));
-	board.add(new Rook(7, 7, player2));
+	board.add(new Rook(0, 0, board.player1));
+	board.add(new Rook(7, 0, board.player1));
+	board.add(new Rook(0, 7, board.player2));
+	board.add(new Rook(7, 7, board.player2));
 
-	board.add(new Knight(1, 0, player1));
-	board.add(new Knight(6, 0, player1));
-	board.add(new Knight(1, 7, player2));
-	board.add(new Knight(6, 7, player2));
+	board.add(new Knight(1, 0, board.player1));
+	board.add(new Knight(6, 0, board.player1));
+	board.add(new Knight(1, 7, board.player2));
+	board.add(new Knight(6, 7, board.player2));
 
-	board.add(new Bishop(2, 0, player1));
-	board.add(new Bishop(5, 0, player1));
-	board.add(new Bishop(2, 7, player2));
-	board.add(new Bishop(5, 7, player2));
+	board.add(new Bishop(2, 0, board.player1));
+	board.add(new Bishop(5, 0, board.player1));
+	board.add(new Bishop(2, 7, board.player2));
+	board.add(new Bishop(5, 7, board.player2));
 
 
-	var x1 = player1 == "white" ? 3 : 4;
-	var x2 = player1 == "white" ? 4 : 3;
+	var x1 = board.player1 == "white" ? 3 : 4;
+	var x2 = board.player1 == "white" ? 4 : 3;
 
-	board.add(new Queen(x1, 0, player1));
-	board.add(new King(x2, 0, player1));
+	board.add(new Queen(x1, 0, board.player1));
+	board.add(new King(x2, 0, board.player1));
 
-	board.add(new Queen(x1, 7, player2));
-	board.add(new King(x2, 7, player2));
+	board.add(new Queen(x1, 7, board.player2));
+	board.add(new King(x2, 7, board.player2));
 
 
 
@@ -571,12 +575,12 @@ $(function(){
 
 	socket.on("receive-move", function(data){
 
-		if(data.player != player){
+		if(data.player != board.player){
 
 			send = false;
 
 			var piece = board.getPiece(data.x0, data.y0);
-			piece.select();
+			piece.select(false);
 
 			var square = board.getSquare(data.x1, data.y1);
 			square.select();
