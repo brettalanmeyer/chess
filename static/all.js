@@ -19,6 +19,8 @@ $(function(){
 
 		this.squares = [];
 		this.pieces = [];
+		this.validMoves = [];
+		this.selectedPiece = null;
 
 		// white always move first
 		this.turn = "white";
@@ -69,53 +71,12 @@ $(function(){
 			return true;
 		};
 
-		// highlight specific square
-		this.highlight = function(x, y){
-			this.getSquare(x, y).highlight();
-		};
-
-		// unhighlight all squares
-		this.unhighlight = function(){
-			for(var x = 0; x < this.pieces.length; x++){
-				for(var y = 0; y < this.pieces[x].length; y++){
-					this.squares[x][y].unhighlight();
-				}
-			}
-		};
-
-		// unselect all squares
-		this.unselect = function(){
-			for(var x = 0; x < this.pieces.length; x++){
-				for(var y = 0; y < this.pieces[x].length; y++){
-					var piece = this.pieces[x][y];
-					if(piece != null){
-						piece.unselect();
-					}
-				}
-			}
-		};
-
-		// return piece that has selected value set
-		this.getSelectedPiece = function(){
-			for(var x = 0; x < this.pieces.length; x++){
-				for(var y = 0; y < this.pieces[x].length; y++){
-					var piece = this.pieces[x][y];
-					if(piece != null && piece.selected){
-						return piece;
-					}
-				}
-			}
-		};
-
 		// move object and html from source to destination
 		this.moveSelectedPieceTo = function(x, y){
 			var piece = board.getSelectedPiece();
 
 			board.killPiece(x, y);
 			board.movePiece(piece.x, piece.y, x, y);
-
-			board.unselect();
-			board.unhighlight();
 
 			this.turn = this.turn == "white" ? "black" : "white";
 			$(".turn .value").html(this.turn);
@@ -193,17 +154,64 @@ $(function(){
 			board.unhighlight();
 
 			return true;
+		};
 
-		}
+		this.determineIfInCheck = function(color){
 
+			for(var i = 0; i < width; i++){
+				for(var j = 0; j < height; j++){
+
+					var piece = this.pieces[i][j];
+					if(piece == null) continue;
+					if(piece.color != color) continue;
+
+					var moves = piece.select();
+
+					for(var k in moves){
+						var move = moves[k];
+						var piece = board.pieces[move.x][move.y];
+						if(piece == null) continue;
+
+						if(piece.kind == "king"){
+							alert(piece.color + " king is in check");
+						}
+					}
+				}
+			}
+		};
+
+		this.setValidMoves = function(moves){
+			this.validMoves = moves;
+		};
+
+		this.getValidMoves = function(){
+			return this.validMoves;
+		};
+
+		this.clearValidMoves = function(){
+			this.validMoves = [];
+		};
+
+		this.hasSelectedPiece = function(){
+			return this.selectedPiece != null;
+		};
+
+		this.setSelectedPiece = function(piece){
+			this.selectedPiece = piece;
+		};
+
+		this.getSelectedPiece = function(){
+			return this.selectedPiece;
+		};
+
+		this.clearSelectedPiece = function(){
+			this.selectedPiece = null;
+		};
 	};
 
 	var Square = function(x, y){
 		this.x = x;
 		this.y = y;
-		this.highlighted = false;
-
-		var cls = "highlight";
 
 		var square = $("<div />").addClass("square").attr("data-x", this.x).attr("data-y", this.y);
 		var coord = $("<span />").addClass("coords").html(this.x + "," + this.y);
@@ -212,38 +220,35 @@ $(function(){
 		var that = this;
 
 		this.select = function(){
-			if(!square.hasClass(cls)){
+			if(!that.isValid()){
 				return;
 			}
+			var piece = board.getSelectedPiece();
 			board.moveSelectedPieceTo(that.x, that.y);
-		}
+			board.determineIfInCheck(piece.color);
+		};
 
 		// return jquery object
 		this.getElement = function(){
 			return square;
 		};
 
-		// add css class for highlighting
-		this.highlight = function(){
-			this.highlighted = true;
-			square.addClass(cls);
-		};
-
-		// remove css class for highlighting
-		this.unhighlight = function(){
-			this.highlighted = false;
-			square.removeClass(cls);
+		this.isValid = function(){
+			var moves = board.getValidMoves();
+			for(var i in moves){
+				var move = moves[i];
+				if(move.x == this.x && move.y == this.y) return true;
+			}
+			return false;
 		};
 
 		square.on("click", this.select);
-
 	};
 
 	var Piece = function(x, y, color){
 		this.x = x;
 		this.y = y;
 		this.color = color;
-		this.selected = false;
 		this.moved = false;
 		this.dead = false;
 
@@ -252,35 +257,25 @@ $(function(){
 		var that = this;
 
 		this.select = function(){
-			if(that.color != board.turn){
+			/*if(that.color != board.turn){
 				return;
-			}
+			}*/
 
 			if(board.castle(that)){
 				return;
 			}
 
-			if(that.selected){
-				that.selected = false;
-				board.unselect();
-				board.unhighlight();
-				return;
+			if(board.hasSelectedPiece() && board.getSelectedPiece() == that){
+				board.clearSelectedPiece();
+			} else {
+				board.setSelectedPiece(that);
 			}
-
-			board.unselect();
-			board.unhighlight();
-			that.selected = true;
 
 			var moves = that.getValidMoves();
-			for(var i in moves){
-				var move = moves[i];
-				board.highlight(move.x, move.y);
-			}
+			board.setValidMoves(moves);
+			return moves;
 		};
 
-		this.unselect = function(){
-			this.selected = false;
-		};
 
 		this.getElement = function(){
 			return piece;
@@ -298,7 +293,7 @@ $(function(){
 			if(player != board.turn){
 				return;
 			}
-			that.select();
+			that.select()
 		});
 
 	};
@@ -566,6 +561,7 @@ $(function(){
 
 	board.add(new Queen(x1, 7, player2));
 	board.add(new King(x2, 7, player2));
+
 
 
 
